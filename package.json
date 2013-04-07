@@ -1,0 +1,13 @@
+{
+	"name": 		"Cylon",
+	"description": 	"Clustered Websocket Server. Race server. Sync the race. Monitor the number of user per level.",
+	"version":		"1.0.0",
+	"dependencies": {
+		"ws": 			"latest",
+		"mysql":		"latest",
+		"mongodb":		"latest",
+		"redis":		"latest",
+		"underscore":	"latest"
+	}
+}
+
