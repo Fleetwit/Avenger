@@ -1,0 +1,109 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<title>Fleet Protocol Test</title>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="json2.js"></script>
+	<script type="text/javascript" src="uuid.js"></script>
+	<script type="text/javascript" src="underscore.js"></script>
+	<script type="text/javascript" src="awsi.js"></script>
+</head>
+<body>
+	<button data-action="connect">Connect</button><br />
+	<table>
+		<tbody>
+			<tr>
+				<td>
+					Host
+				</td>
+				<td>
+					<select id="host">
+						<option value="127.0.0.1">127.0.0.1</option>
+						<option value="209.59.172.80">209.59.172.80</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Port
+				</td>
+				<td>
+					<select id="port">
+						<option value="8000">test.server</option>
+						<option value="8022">Operator</option>
+						<option value="8024">Cylon</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Scenario
+				</td>
+				<td>
+					<select id="scenario">
+						<option value="Operator">Operator</option>
+						<option value="Cylon">Cylon</option>
+					</select>
+				</td>
+			</tr>
+			<tr>
+				<td>
+					N
+				</td>
+				<td>
+					<input type="text" id="n" />
+				</td>
+			</tr>
+		</tbody>
+	</table>
+	<button data-action="execute">Execute</button>
+	<hr />
+	<div class="log">
+		
+	</div>
+	<script type="text/javascript">
+		
+		var ws;
+		
+		$(function() {
+			$("[data-action]").click(function() {
+				switch ($(this).data("action")) {
+					case "connect":
+						if (!ws) {
+							ws = new awsi({
+								addr:		["ws://"+$("#host").val()+":"+$("#port").val()],//["ws://127.0.0.1:8014"],
+								keepalive:	true,
+								reconnect:	true,
+								onConnect:	function(reconnected) {
+									console.log("connected");
+								},
+								onReceive:	function(message) {
+									console.log("onReceive",message);
+								},
+								onClose:	function() {
+									console.log("onClose");
+								}
+							});
+						}
+						ws.connect();
+					break;
+					case "execute":
+						ws.send({
+							exec: {
+								scenario: 	$("#scenario").val(),
+								options:	{
+									host:	$("#host").val(),
+									port:	$("#port").val(),
+									n:		$("#n").val()
+								}
+							}
+						},false,true);
+					break;
+				}
+			});
+			
+		});
+	</script>
+</body>
+</html>

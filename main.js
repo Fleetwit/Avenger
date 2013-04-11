@@ -13,7 +13,29 @@ _cluster.setupMaster({
     exec:	main
 });
 
-for (var i = 0; i < cpuCount; i++) {
+function processArgs() {
+	var i;
+	var args 	= process.argv.slice(2);
+	var output 	= {};
+	for (i=0;i<args.length;i++) {
+		var l1	= args[i].substr(0,1);
+		if (l1 == "-") {
+			output[args[i].substr(1)] = args[i+1];
+			i++;
+		}
+	}
+	return output;
+};
+
+var args = processArgs();
+for (i in args) {
+	console.log("-> ",i,": ",args[i]);
+}
+if (!args.thread) {
+	args.thread = 64;
+}
+args.thread = Math.min(args.thread*1, cpuCount);
+for (var i = 0; i < args.thread; i++) {
     createWorker();
 }
 

@@ -1,0 +1,160 @@
+<!DOCTYPE HTML>
+<html lang="en-US">
+<head>
+	<title>Avenger Log Vizualizer</title>
+	<meta charset="UTF-8">
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.9.1.min.js"></script>
+	<script type="text/javascript" src="json2.js"></script>
+	<script type="text/javascript" src="underscore.js"></script>
+	<script language="javascript" type="text/javascript" src="flot/jquery.flot.js"></script>
+</head>
+<body>
+	<select id="list">
+		<option value="">Loading...</option>
+	</select>
+	<select id="group">
+		<option value="threads">threads</option>
+		<option value="average">average</option>
+	</select>
+	<div id="plotChart" style="width:100%;height:300px"></div>
+    <p id="hoverdata"></p>
+    
+	<script type="text/javascript">
+		
+		var logData = {};
+		var plot;
+		
+		$(function() {
+			
+			$("#list").change(function() {
+				displayChart($("#list").val(), $("#group").val());
+			});
+			$("#group").change(function() {
+				displayChart($("#list").val(), $("#group").val());
+			});
+			
+			// load data
+			$.ajax({
+				url: 		"log/log.json",
+				method: 	'GET',
+				dataType: 	'json',
+				success: 	function(data) {
+					logData = data;
+					buildList();
+				}
+			});
+		});
+		
+		function buildList() {
+			var i;
+			var list = $("#list");
+			list.empty();
+			list.append('<option value="">Select...</option>');
+			for (i in logData) {
+				list.append('<option value="'+i+'">'+i+'</option>');
+			}
+		}
+		
+		function displayChart(label, display) {
+			var data 		= logData[label];
+			
+			// Charts
+			var chartData	= [];
+			
+			if (display == "threads") {
+				for (process in data) {
+					
+					var c = 0;
+					for (datatype in data[process].log.output) {
+						var buffer = [];
+						var l 		= data[process].log.output[datatype].length;
+						if (l == 0) {
+							continue;
+						}
+						for (i=0;i<l;i++) {
+							buffer.push([i+1,data[process].log.output[datatype][i]]);
+						}
+						chartData.push({
+							data: 	buffer,
+							label: 	process+"."+datatype,
+							color:	c++
+						});
+					}
+				}
+			} else {
+				var groups	= {};
+				var sums	= {};
+				for (process in data) {
+					for (datatype in data[process].log.output) {
+						
+						if (!groups[datatype]) {
+							groups[datatype] = [];
+						}
+						if (!sums[datatype]) {
+							sums[datatype] = [];
+						}
+						
+						var buffer = [];
+						var l 		= data[process].log.output[datatype].length;
+						if (l == 0) {
+							continue;
+						}
+						for (i=0;i<l;i++) {
+							if (!groups[datatype][i]) {
+								groups[datatype][i] = 0;
+							}
+							if (!sums[datatype][i]) {
+								sums[datatype][i] = 0;
+							}
+							groups[datatype][i] += data[process].log.output[datatype][i];
+							sums[datatype][i]++;
+							//buffer.push([i+1,data[process].log.output[datatype][i]]);
+						}
+					}
+				}
+				var c = 0;
+				for (datatype in groups) {
+					var l 		= groups[datatype].length;
+					if (l == 0) {
+						continue;
+					}
+					for (i=0;i<l;i++) {
+						groups[datatype][i] = [i, groups[datatype][i] / sums[datatype][i]];
+					}
+					chartData.push({
+						data: 	groups[datatype],
+						label: 	datatype,
+						color:	c++
+					});
+				}
+				console.log("groups",groups);
+				console.log("sums",sums);
+			}
+			
+			plot = $.plot(
+				$("#plotChart"),
+				chartData,
+				{
+					series: {
+						lines: {
+							show: true
+						}
+					},
+					crosshair: {
+						mode: "x"
+					},
+					grid: {
+						hoverable: true,
+						autoHighlight: false
+					},
+					yaxis: {
+						min: 0
+					}
+				}
+			);
+		}
+	</script>
+	
+	
+</body>
+</html>
