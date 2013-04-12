@@ -1,13 +1,12 @@
 var _cluster		= require('cluster');
 var _os				= require('os');
 var _ 				= require('underscore');
-var _logger 		= require('./lib.logger').logger;
-var _stack 			= require('./lib.stack').stack;
-var simpleclient 	= require('./lib.simpleclient').simpleclient;
 var fs 				= require('fs');
 
 var client 			= require('./node.awsi').client;
 var server 			= require('./node.awsi').server;
+
+var scenarios 		= require('./scenarios').scenarios;
 
 var debug_mode		= true;
 
@@ -21,6 +20,8 @@ function avenger() {
 		keep:		true,
 		interval:	100,
 		nstart:		0,
+		scenario:	"Load",
+		simname:	"helloworld",
 		control: {
 			host:	"127.0.0.1",
 			port:	8014
@@ -34,235 +35,42 @@ function avenger() {
 	
 	this.options.n = this.options.n*1;
 	
-	
-	
-	this.scenarios = {
-		Load:	{
-			onStart:	function() {
-				scope.stats = {
-					_open:		0,
-					_fail:		0,
-					_close:		0,
-					_receive:	0,
-					temp:		{
-						init:		{},
-						send:		{},
-					},
-					speed:		{
-						open:		{},
-						close:		{},
-						fail:		{},
-						receive:	{}
-					}
-					
-				};
-			},
-			onInit:		function(n) {
-				try {
-					scope.stats.temp.init[n] = new Date().getTime();
-				} catch(e) {
-					
-				}
-			},
-			onConnect: 	function(n, instance) {
-				try {
-					scope.stats._open++;
-					scope.stats.speed.open[n] = new Date().getTime()-scope.stats.temp.init[n];
-					scope.stats.temp.send[n] = new Date().getTime();
-					instance.send({echo:true});
-				} catch(e) {
-					
-				}
-			},
-			onClose: 	function(n, instance) {
-				try {
-					scope.stats._close++;
-					scope.stats.speed.close[n] = new Date().getTime()-scope.stats.temp.init[n];
-				} catch(e) {
-					
-				}
-			},
-			onFail: 	function(n, instance) {
-				try {
-					scope.stats._fail++;
-					scope.stats.speed.fail[n] = new Date().getTime()-scope.stats.temp.init[n];
-				} catch(e) {
-					
-				}
-			},
-			onReceive: 	function(n, instance, message) {
-				try {
-					scope.stats._receive++;
-					scope.stats.speed.receive[n] = new Date().getTime()-scope.stats.temp.send[n];
-					//instance.close();
-				} catch(e) {
-					
-				}
-			}
-		},
-		Cylon:	{
-			onStart:	function() {
-				scope.stats = {
-					_open:		0,
-					_fail:		0,
-					_close:		0,
-					_receive:	0,
-					temp:		{
-						init:		{},
-						send:		{},
-					},
-					speed:		{
-						open:		{},
-						close:		{},
-						fail:		{},
-						receive:	{}
-					}
-					
-				};
-			},
-			onInit:		function(n) {
-				try {
-					scope.stats.temp.init[n] = new Date().getTime();
-				} catch(e) {
-					
-				}
-			},
-			onConnect: 	function(n, instance) {
-				try {
-					scope.stats._open++;
-					scope.stats.speed.open[n] = new Date().getTime()-scope.stats.temp.init[n];
-					scope.stats.temp.send[n] = new Date().getTime();
-					instance.send({
-						raceToken: '0c8b800b-2fad-4195-a3b6-d2b30d827dce',
-						send_time:	new Date().getTime()
-					});
-				} catch(e) {
-					
-				}
-			},
-			onClose: 	function(n, instance) {
-				try {
-					scope.stats._close++;
-					scope.stats.speed.close[n] = new Date().getTime()-scope.stats.temp.init[n];
-					delete scope.clients[n];
-				} catch(e) {
-					
-				}
-			},
-			onFail: 	function(n, instance) {
-				try {
-					scope.stats._fail++;
-					scope.stats.speed.fail[n] = new Date().getTime()-scope.stats.temp.init[n];
-					delete scope.clients[n];
-				} catch(e) {
-					
-				}
-			},
-			onReceive: 	function(n, instance, message) {
-				try {
-					//console.log("receive:",message);
-					//if (message.online || message.invalidRaceToken) {
-					if (message.send_time) {
-						scope.stats._receive++;
-						scope.stats.speed.receive[n] = new Date().getTime()-message.send_time;
-						//instance.close();
-					}
-				} catch(e) {
-					
-				}
-			}
-		},
-		Operator:	{
-			onStart:	function() {
-				scope.stats = {
-					_open:		0,
-					_fail:		0,
-					_close:		0,
-					_receive:	0,
-					temp:		{
-						init:		{},
-						send:		{},
-					},
-					speed:		{
-						open:		{},
-						close:		{},
-						fail:		{},
-						receive:	{}
-					}
-					
-				};
-			},
-			onInit:		function(n) {
-				try {
-					scope.stats.temp.init[n] = new Date().getTime();
-				} catch(e) {
-					
-				}
-			},
-			onConnect: 	function(n, instance) {
-				try {
-					scope.stats._open++;
-					scope.stats.speed.open[n] = new Date().getTime()-scope.stats.temp.init[n];
-					scope.stats.temp.send[n] = new Date().getTime();
-					instance.send({authToken: '980a21dfd43488f30ca4d27b8f686783',rid:3});
-				} catch(e) {
-					
-				}
-			},
-			onClose: 	function(n, instance) {
-				try {
-					scope.stats._close++;
-					scope.stats.speed.close[n] = new Date().getTime()-scope.stats.temp.init[n];
-					delete scope.clients[n];
-				} catch(e) {
-					
-				}
-			},
-			onFail: 	function(n, instance) {
-				try {
-					scope.stats._fail++;
-					scope.stats.speed.fail[n] = new Date().getTime()-scope.stats.temp.init[n];
-					delete scope.clients[n];
-				} catch(e) {
-					
-				}
-			},
-			onReceive: 	function(n, instance, message) {
-				try {
-					scope.stats._receive++;
-					scope.stats.speed.receive[n] = new Date().getTime()-scope.stats.temp.send[n];
-					//instance.close();
-				} catch(e) {
-					
-				}
-			}
-		}
-	};
-	
-	this.scenario = "Cylon";
+	this.scenarios = scenarios(this);
 	
 	if (this.options.central) {
 		console.log("Connecting...");
-		this.client = new simpleclient(this.options.control.host,this.options.control.port,{
-			onConnect:	function(instance) {
-				console.log("Connected to Central Command");
+		this.client = new client({
+			port:		this.options.control.port,
+			host:		this.options.control.host,
+			keepalive:	true,
+			reconnect:	true,
+			onConnect:	function(reconnected) {
+				if (reconnected) {
+					console.log("Reconnected to Central Command");
+				} else {
+					console.log("Connected to Central Command");
+				}
+				scope.client.send({
+					available:	true
+				}, false, true);
 			},
-			onFail:	function(instance, message) {
-				console.log("fail",message);
-			},
-			onClose:	function(instance, code) {
-				console.log("close");
-			},
-			onReceive:	function(instance, message) {
-				console.log("onReceive");
+			onReceive:	function(message) {
 				if (message.exec) {
-					console.log("Executing scenario: ",message.exec.scenario);
-					scope.scenario = message.exec.scenario
-					scope.options = _.extend(scope.options,message.exec.options);
+					scope.options = _.extend(scope.options,message.exec);
 					scope.startTest();
 				}
+				if (message.running) {
+					console.log("> Computer #"+message.wsid+" is currently running a simulation... Please wait...");
+				}
+				if (message.update) {
+					console.log(message.update);
+				}
+			},
+			onClose:	function() {
+				
 			}
 		});
+		this.client.connect();
 	}
 	
 	if (this.options.start) {
@@ -299,18 +107,27 @@ avenger.prototype.startTest = function(options) {
 	var lastpct = 0;
 	this.connInterval = setInterval(function() {
 		scope.conn++;
-		var pct 	= Math.round(scope.conn/scope.options.n*100);
+		var pct 	= Math.round((scope.conn-scope.options.nstart)/scope.options.n*100);	// substract nstart to keep the pct in range (when nstart > n)
 		if (pct % 5 == 0 && lastpct != pct) {
 			lastpct = pct;
 			// recompute time left
 			var elapsed 	= new Date().getTime() - scope.timeStart;
 			var remaining 	= elapsed/pct*(100-pct);
 			// Display
-			console.log(pct+"% done (n="+scope.conn+", "+remaining+"ms remaining ("+Math.round(remaining/1000)+"sec - "+Math.round(remaining/1000/60)+"min)"+")");
+			console.log(pct+"% done (n="+(scope.conn-scope.options.nstart)+"/"+(scope.options.n)+", "+remaining+"ms remaining ("+Math.round(remaining/1000)+"sec - "+Math.round(remaining/1000/60)+"min)"+")");
+			
+			// Update the remote
+			try {
+				scope.client.send({
+					update:	pct+"% done (n="+(scope.conn-scope.options.nstart)+"/"+(scope.options.n)+", "+remaining+"ms remaining ("+Math.round(remaining/1000)+"sec - "+Math.round(remaining/1000/60)+"min)"+")"
+				}, false, true);
+			} catch (e) {
+				//console.log("err",e);
+			}
 		}
 		scope.createClient(scope.conn);
 		
-		if (scope.conn == scope.options.n) {
+		if (scope.conn-scope.options.nstart == scope.options.n) {
 			clearInterval(scope.connInterval);
 			scope.timeEnd 	= new Date().getTime();
 			scope.timeTotal = scope.timeEnd - scope.timeStart;
@@ -323,20 +140,7 @@ avenger.prototype.createClient = function(i) {
 	var scope 	= this;
 	
 	scope.scenarios[scope.options.scenario].onInit(i);
-	/*this.clients[i] = new simpleclient(this.options.host,this.options.port,{
-		onConnect:	function(instance) {
-			scope.scenarios[scope.options.scenario].onConnect(i, instance);
-		},
-		onClose:	function(instance) {
-			scope.scenarios[scope.options.scenario].onClose(i, instance);
-		},
-		onFail:	function(instance) {
-			scope.scenarios[scope.options.scenario].onFail(i, instance);
-		},
-		onReceive:	function(instance, message) {
-			scope.scenarios[scope.options.scenario].onReceive(i, instance, message);
-		}
-	});*/
+
 	this.clients[i] = new client({
 		port:		this.options.port,
 		host:		this.options.host,
@@ -364,10 +168,17 @@ avenger.prototype.displayStats = function() {
 	var j;
 	
 	console.log("Sim time: ",this.timeTotal+"ms",(this.timeTotal/1000)+"sec");
-	
+	try {
+		scope.client.send({
+			update:	"Sim time: "+this.timeTotal+"ms ("+(this.timeTotal/1000)+"sec)"
+		}, false, true);
+	} catch (e) {
+		//console.log("err",e);
+	}
+			
 	// saving the stats
 	if (this.options.savestats) {
-		var idstring 	= this.options.scenario+"-"+this.options.host+"-"+this.options.port+"-"+this.options.n+"-"+(this.options.interval)+"-"+(this.options.thread);
+		var idstring 	= this.options.simname; //this.options.scenario+"-"+this.options.host+"-"+this.options.port+"-"+this.options.n+"-"+(this.options.interval)+"-"+(this.options.thread);
 		var logname 	= "stats/log/stats-"+idstring+"-"+process.pid+".json";
 		
 		// create output object
@@ -409,6 +220,22 @@ avenger.prototype.displayStats = function() {
 				port:	scope.options.port,
 				conn:	scope.options.n,
 				log:	scope.stats
+			}
+			
+			try {
+				var buffer = {};
+				buffer[idstring] = {};
+				buffer[idstring][process.pid] = {
+					host:	scope.options.host,
+					port:	scope.options.port,
+					conn:	scope.options.n,
+					log:	scope.stats
+				}
+				scope.client.send({
+					stats: buffer
+				}, false, true);
+			} catch (e) {
+				
 			}
 			// save log
 			fs.writeFile("stats/log/log.json", JSON.stringify(data), function(err) {

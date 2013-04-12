@@ -76,7 +76,7 @@ awsi.server.prototype.broadcast = function(data, except) {
 	var list = {};
 	if (except != undefined && except.length > 0) {
 		// clone the user list
-		for(var keys = Object.keys(this.clients), l = keys.length; l; --l) {
+		for(var keys = Object.keys(this.users), l = keys.length; l; --l) {
 			list[ keys[l-1] ] = this.clients[ keys[l-1] ];
 		}
 		// remove the exceptions
@@ -161,6 +161,7 @@ awsi.client.prototype.connect = function() {
 	this.ws 		= new wssClient("ws://"+this.options.host+":"+this.options.port);
 	try {
 		this.ws.on('open', function() {
+			//console.log("Connected ("+scope.options.host+":"+scope.options.port+")");
 			scope.onConnect();
 		});
 		this.ws.on('message', function(data) {
@@ -186,7 +187,6 @@ awsi.client.prototype.connect = function() {
 	
 };
 awsi.client.prototype.onConnect = function() {
-	var scope 			= this;
 	this.online			= true;
 	this.stackRunning	= false;
 	if (this.reconnecting) {
@@ -203,21 +203,19 @@ awsi.client.prototype.onConnect = function() {
 	// process stack
 	this.processStack();
 	// 
-	this.options.onConnect(this.reconnected, scope);
+	this.options.onConnect(this.reconnected, this);
 	return this;
 };
 awsi.client.prototype.onReceive = function(data) {
-	var scope 			= this;
 	// process hooks first
 	var i;
 	for (i in this.hooks["onReceive"]) {
 		this.hooks["onReceive"][i](data);
 	}
-	this.options.onReceive(data, scope);
+	this.options.onReceive(data, this);
 	return this;
 };
 awsi.client.prototype.onClose = function(data) {
-	var scope 			= this;
 	this.stackRunning	= false;
 	this.online 		= false;
 	this.ws				= false;
@@ -238,7 +236,7 @@ awsi.client.prototype.onClose = function(data) {
 	for (i in this.hooks["onClose"]) {
 		this.hooks["onClose"][i](data);
 	}
-	this.options.onClose(this.closeRequest, scope);
+	this.options.onClose(this.closeRequest, this);
 	return this;
 };
 awsi.client.prototype.hook = function(fn, name, callback) {
@@ -316,7 +314,6 @@ awsi.client.prototype.ask = function(data, callback, async, now) {
 	return this;
 };
 awsi.client.prototype.clearStack = function() {
-	var scope 			= this;
 	this.stack 			= [];		// reset the stack
 	this.stackRunning	= false;	// stop the stack
 	return this;

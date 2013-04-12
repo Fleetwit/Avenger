@@ -8,11 +8,35 @@
 	<script type="text/javascript" src="uuid.js"></script>
 	<script type="text/javascript" src="underscore.js"></script>
 	<script type="text/javascript" src="awsi.js"></script>
+	<style type="text/css">
+		#log {
+			border:				1px solid #C5C5C5;
+			height:				250px;
+			overflow:			auto;
+		}
+		#log > div {
+			padding:			3px;
+			margin-bottom:		2px;
+			background-color:	#ECECEC;
+			font-size:			11px;
+		}
+	</style>
 </head>
 <body>
-	<button data-action="connect">Connect</button><br />
-	<table>
+	<button data-action="connect" id="connect">Connect</button><br />
+	<table id="options">
 		<tbody>
+			<tr>
+				<td>
+					Control Server
+				</td>
+				<td>
+					<select id="control">
+						<option value="ws://127.0.0.1:8014">127.0.0.1</option>
+						<option value="ws://209.59.172.80:8014">209.59.172.80</option>
+					</select>
+				</td>
+			</tr>
 			<tr>
 				<td>
 					Host
@@ -44,6 +68,7 @@
 					<select id="scenario">
 						<option value="Operator">Operator</option>
 						<option value="Cylon">Cylon</option>
+						<option value="Load">Load</option>
 					</select>
 				</td>
 			</tr>
@@ -52,14 +77,37 @@
 					N
 				</td>
 				<td>
-					<input type="text" id="n" />
+					<input type="text" id="n" value="200" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Interval
+				</td>
+				<td>
+					<input type="text" id="interval" value="20" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					Sim Name
+				</td>
+				<td>
+					<input type="text" id="simname" value="test01" />
+				</td>
+			</tr>
+			<tr>
+				<td>
+					
+				</td>
+				<td>
+					<button data-action="execute">Execute</button>
 				</td>
 			</tr>
 		</tbody>
 	</table>
-	<button data-action="execute">Execute</button>
 	<hr />
-	<div class="log">
+	<div id="log">
 		
 	</div>
 	<script type="text/javascript">
@@ -67,19 +115,30 @@
 		var ws;
 		
 		$(function() {
+			
+			$("#options").hide();
+			
 			$("[data-action]").click(function() {
 				switch ($(this).data("action")) {
 					case "connect":
 						if (!ws) {
 							ws = new awsi({
-								addr:		["ws://"+$("#host").val()+":"+$("#port").val()],//["ws://127.0.0.1:8014"],
+								addr:		[$("#control").val()],
 								keepalive:	true,
 								reconnect:	true,
 								onConnect:	function(reconnected) {
 									console.log("connected");
+									$("#connect").slideUp();
+									$("#options").slideDown();
+									$("#log").append('<div>Connected.</div>');
+									$("#log").scrollTop($("#log").get(0).scrollHeight);
 								},
 								onReceive:	function(message) {
 									console.log("onReceive",message);
+									if (message.update) {
+										$("#log").append('<div>'+message.update+'</div>');
+										$("#log").scrollTop($("#log").get(0).scrollHeight);
+									}
 								},
 								onClose:	function() {
 									console.log("onClose");
@@ -92,11 +151,12 @@
 						ws.send({
 							exec: {
 								scenario: 	$("#scenario").val(),
-								options:	{
-									host:	$("#host").val(),
-									port:	$("#port").val(),
-									n:		$("#n").val()
-								}
+								host:		$("#host").val(),
+								port:		$("#port").val(),
+								n:			$("#n").val()*1,
+								interval:	$("#interval").val()*1,
+								simname:	$("#simname").val(),
+								savestats:	true
 							}
 						},false,true);
 					break;
