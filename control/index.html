@@ -23,20 +23,12 @@
 	</style>
 </head>
 <body>
-	<button data-action="connect" id="connect">Connect</button><br />
+	<div id="connect">
+		<input type="text" value="ws://127.0.0.1:8014" id="control" />
+		<button data-action="connect">Connect</button>
+	</div>
 	<table id="options">
 		<tbody>
-			<tr>
-				<td>
-					Control Server
-				</td>
-				<td>
-					<select id="control">
-						<option value="ws://127.0.0.1:8014">127.0.0.1</option>
-						<option value="ws://209.59.172.80:8014">209.59.172.80</option>
-					</select>
-				</td>
-			</tr>
 			<tr>
 				<td>
 					Host
@@ -140,8 +132,13 @@
 										$("#log").scrollTop($("#log").get(0).scrollHeight);
 									}
 								},
-								onClose:	function() {
-									console.log("onClose");
+								onClose:	function(requested) {
+									if (requested) {
+										$("#log").append('<div>Connection closed.</div>');
+									} else {
+										$("#log").append('<div>Unable to connect.</div>');
+									}
+									$("#log").scrollTop($("#log").get(0).scrollHeight);
 								}
 							});
 						}

@@ -22,10 +22,8 @@ function avenger() {
 		nstart:		0,
 		scenario:	"Load",
 		simname:	"helloworld",
-		control: {
-			host:	"127.0.0.1",
-			port:	8014
-		}
+		cc_host:	"127.0.0.1",
+		cc_port:	8014
 	},this.processArgs());
 	
 	if (!this.options.thread) {
@@ -40,8 +38,8 @@ function avenger() {
 	if (this.options.central) {
 		console.log("Connecting...");
 		this.client = new client({
-			port:		this.options.control.port,
-			host:		this.options.control.host,
+			port:		this.options.cc_port,
+			host:		this.options.cc_host,
 			keepalive:	true,
 			reconnect:	true,
 			onConnect:	function(reconnected) {

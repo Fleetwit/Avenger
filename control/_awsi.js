@@ -60,6 +60,7 @@ awsi.prototype.connect = function() {
 		$(this.ws).bind('message', 	function(e) {
 			var data = e.originalEvent.data;
 			if (typeof(data) != "object") {
+				console.log("data::",data);
 				data = JSON.parse(data);
 			}
 			scope.onReceive(data)
@@ -106,7 +107,6 @@ awsi.prototype.onClose = function(data) {
 	this.stackRunning	= false;
 	this.online 		= false;
 	this.ws				= false;
-	this.reconnecting	= false;
 	console.log("this.closeRequest",this.closeRequest);
 	// Stop the stack
 	if (!this.closeRequest) {
