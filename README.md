@@ -8,7 +8,7 @@ Avenger can execute scenarios written in Javascript, and exports the data of you
 
 Avenger can work as part of a network, where the load testing will be distributed among many computers.
 
-Just run the included "Central Command" server,and all the Avenger clients will connect and wait for instructions. Use the included HTML Central COmmand tool to connect to the Central Command server and remotely launch load tests that will be distributed among all the available Avenger clients. The logs will be transfered to the server so that you can visualize them using the Log Visualizer.
+Just run the included "Central Command" server,and all the Avenger clients will connect and wait for instructions. Use the included HTML Central Command tool to connect to the Central Command server and remotely launch load tests that will be distributed among all the available Avenger clients. The logs will be transfered to the server so that you can visualize them using the Log Visualizer.
 
 **Usage (stand-alone mode)**
 
@@ -35,3 +35,8 @@ In a browser, launch /control/index.html, enter the Central Command's websocket 
 Once connected, the control interface will appear. Enter the parameters, and click [execute]. You will have a real-time update on the status of each client's simulation.
 
 Once the simulation ended, open /stats/index.html in a browser to visualize the data.
+
+
+**Why "Avenger"?**
+
+Avenger was the name of the virus that was created by the SGC to infest and remotely control the Stargate Network in Stargate-SG1.
